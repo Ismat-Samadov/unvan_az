@@ -11,4 +11,7 @@ class LinksSpider(scrapy.Spider):
                   "https://unvan.az/torpaq-sahesi?start=1"]
 
     def parse(self, response):
-        pass
+        href=response.css('holderimg').get()
+        yield {
+            "link":href
+        }
