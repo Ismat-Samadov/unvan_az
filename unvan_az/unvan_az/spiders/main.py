@@ -3,7 +3,7 @@ from scrapy_splash import SplashRequest
 
 
 class LinksSpider(scrapy.Spider):
-    name = "links"
+    name = "main"
     allowed_domains = ["unvan.az"]
     start_urls = [
         "https://unvan.az/yeni-bina-evi?start=1",
@@ -14,13 +14,18 @@ class LinksSpider(scrapy.Spider):
     ]
     script = '''
        function main(splash, args)
-           splash.private_mode_enabled = false
-           assert(splash:go(args.url))
-           assert(splash:wait(2))  -- Adjust the wait time if needed
-           return {
-               html = splash:html()
-           }
-       end
+        splash.private_mode_enabled = false
+        assert(splash:go(args.url))
+        assert(splash:wait(2))  -- Adjust the wait time as needed
+    
+        -- Execute JavaScript to retrieve specific data
+        local phone_number = splash:evaljs("document.querySelector('div.telzona').getAttribute('tel');")
+        
+        return {
+            phone_number = phone_number,
+            html = splash:html()
+        }
+      end
     '''
 
     def start_requests(self):
@@ -33,14 +38,18 @@ class LinksSpider(scrapy.Spider):
             )
 
     def parse(self, response):
-        # Extract links from the current page
-        links = response.css('div.holderimg a::attr(href)').getall()
-        for link in links:
+        # Extract links and phone numbers from the current page
+        divs = response.css('div.infocontact')
+        for div in divs:
+            link = div.css('a::attr(href)').get()
+            phone_number = div.css('div.telzona::attr(tel)').get()
+
             yield {
-                "link": link
+                "link": link,
+                "phone_number": phone_number
             }
 
-        # Follow all pagination links using Splash
+        # Follow pagination links using Splash
         pagination_links = response.css('div.pagination a[href*="start="]::attr(href)').getall()
         for pag_link in pagination_links:
             yield SplashRequest(
