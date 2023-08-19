@@ -8,17 +8,6 @@ from twisted.internet import reactor
 from twisted.internet.defer import Deferred
 
 
-class DelayedRequestsMiddleware(object):
-    def process_request(self, request, spider):
-        delay_s = request.meta.get('delay_request_by', None)
-        if not delay_s:
-            return
-
-        deferred = Deferred()
-        reactor.callLater(delay_s, deferred.callback, None)
-        return deferred
-
-
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 

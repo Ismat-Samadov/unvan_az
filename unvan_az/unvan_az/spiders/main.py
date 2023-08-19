@@ -4,9 +4,6 @@ from scrapy_splash import SplashRequest
 
 class PropertySpider(scrapy.Spider):
     name = "main"
-    custom_settings = {
-        'DOWNLOADER_MIDDLEWARES': {'middlewares.DelayedRequestsMiddleware': 123},
-    }
     allowed_domains = ["unvan.az"]
     start_urls = [
         "https://unvan.az/yeni-bina-evi?start=1",  # 152 * 20 + 3
@@ -34,7 +31,6 @@ class PropertySpider(scrapy.Spider):
                 callback=self.parse_links,
                 endpoint='execute',
                 args={'lua_source': self.script},
-                meta={'delay_request_by': 5}
             )
 
     def parse_links(self, response):
@@ -61,7 +57,15 @@ class PropertySpider(scrapy.Spider):
     def parse_details(self, response):
 
         yield {
+            'id': response.css('span.open_idshow::text').get(),
             'link': response.url,
             'phone': response.css('div.telzona::attr(tel)').getall(),
             'short_descr': response.css('h1.leftfloat::text').get(),
+            'type': response.css('p > b::text').getall()[2],
+            'room_count': response.css('p:contains("Otaq sayı")::text').get(),
+            'area': response.css('p:contains("Sahə")::text').get(),
+            'price': response.css('p > b > .pricecolor::text').get(),
+            'location': response.css('.linkteshow > a::text').getall(),
+            'contact_person': response.css('.infocontact strong::text').get()
+
         }
