@@ -55,17 +55,22 @@ class PropertySpider(scrapy.Spider):
             )
 
     def parse_details(self, response):
-
-        yield {
-            'id': response.css('span.open_idshow::text').get(),
-            'link': response.url,
-            'phone': response.css('div.telzona::attr(tel)').getall(),
-            'short_descr': response.css('h1.leftfloat::text').get(),
-            'type': response.css('p > b::text').getall()[2],
-            'room_count': response.css('p:contains("Otaq sayı")::text').get(),
-            'area': response.css('p:contains("Sahə")::text').get(),
-            'price': response.css('p > b > .pricecolor::text').get(),
-            'location': response.css('.linkteshow > a::text').getall(),
-            'contact_person': response.css('.infocontact strong::text').get()
-
-        }
+        try:
+            yield {
+                'id': response.css('span.open_idshow::text').getall(),
+                'date': response.xpath('//*[@id="openhalf"]/div[3]/span/text()').getall(),
+                'link': response.url,
+                'short_descr': response.css('h1.leftfloat::text').getall(),
+                'long_descr': response.xpath('//*[@id="openhalf"]/p[1]/text()').getall(),
+                'address': response.css('p.infop100.linkteshow::text').getall()[2],
+                'location': response.css('.linkteshow > a::text').getall(),
+                'type': response.css('p > a::text').getall()[0],
+                'room_count': response.css('p:contains("Otaq sayı")::text').getall(),
+                'area': response.css('p:contains("Sahə")::text').getall(),
+                'price': response.css('span.pricecolor::text').getall(),
+                'owner': response.xpath('//*[@id="openhalf"]/div[2]/text()').getall()[3],
+                'owner_address': response.xpath('//*[@id="openhalf"]/div[2]/text()').getall()[5],
+                'phone': response.css('div.telzona::attr(tel)').getall(),
+            }
+        except Exception as e:
+            self.logger.error(f"Error parsing details for {response.url}: {e}")
