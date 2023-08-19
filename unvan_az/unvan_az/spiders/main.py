@@ -13,20 +13,15 @@ class LinksSpider(scrapy.Spider):
         "https://unvan.az/torpaq-sahesi?start=1"
     ]
     script = '''
-       function main(splash, args)
-        splash.private_mode_enabled = false
-        assert(splash:go(args.url))
-        assert(splash:wait(2))  -- Adjust the wait time as needed
-    
-        -- Execute JavaScript to retrieve specific data
-        local phone_number = splash:evaljs("document.querySelector('div.telzona').getAttribute('tel');")
-        
-        return {
-            phone_number = phone_number,
-            html = splash:html()
-        }
-      end
-    '''
+                function main(splash, args)
+                  assert(splash:go(args.url))
+                  splash: set_viewport_full()
+                  assert(splash:wait(0.5))
+                  return {
+                    html = splash:html()
+                  }
+                end
+             '''
 
     def start_requests(self):
         for url in self.start_urls:
@@ -42,7 +37,7 @@ class LinksSpider(scrapy.Spider):
         divs = response.css('div.infocontact')
         for div in divs:
             link = div.css('a::attr(href)').get()
-            phone_number = div.css('div.telzona::attr(tel)').get()
+            phone_number = response.css('div.telzona::attr(tel)').get()
 
             yield {
                 "link": link,
