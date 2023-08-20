@@ -19,10 +19,12 @@ class ContentSpider(scrapy.Spider):
     '''
 
     def start_requests(self):
+
         yield SplashRequest(url='https://unvan.az/neftciler-metrosu-2584465.html',
                             callback=self.parse,
                             endpoint='execute',
-                            args={'lua_source': self.script}
+                            args={'lua_source': self.script},
+                            headers=headers
                             )
 
     def parse(self, response):

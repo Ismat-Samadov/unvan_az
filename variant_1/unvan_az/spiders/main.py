@@ -16,7 +16,10 @@ class PropertySpider(scrapy.Spider):
         function main(splash,args)
           splash.private_mode_enabled=false
           url=args.url
-          assert(splash:go(url))
+          local response = splash:go(url)
+          if not response then
+             error("Failed to retrieve the page")
+          end
           assert(splash:wait(2))  -- Adjust the wait time if needed
           return {
             html=splash:html()
@@ -25,6 +28,7 @@ class PropertySpider(scrapy.Spider):
     '''
 
     def start_requests(self):
+
         for url in self.start_urls:
             yield SplashRequest(
                 url=url,

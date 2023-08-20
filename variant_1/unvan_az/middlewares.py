@@ -11,6 +11,24 @@ from twisted.internet.defer import Deferred
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 
+# middlewares.py
+
+from scrapy.downloadermiddlewares.retry import RetryMiddleware
+from twisted.internet.error import TimeoutError, DNSLookupError, ConnectionRefusedError, ConnectionDone, ConnectError, ConnectionLost, TCPTimedOutError
+from scrapy_splash import SplashRequest
+
+class CustomRetryMiddleware(RetryMiddleware):
+    def __init__(self, settings):
+        super().__init__(settings)
+
+    def process_exception(self, request, exception, spider):
+        if isinstance(exception, (TimeoutError, DNSLookupError, ConnectionRefusedError, ConnectionDone, ConnectError, ConnectionLost, TCPTimedOutError)):
+            return self._retry(request, exception, spider)
+        elif hasattr(exception, 'response') and exception.response.status == 502:
+            return self._retry(request, exception, spider)
+
+        return None
+
 
 class UnvanAzSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
